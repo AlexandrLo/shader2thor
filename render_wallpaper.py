@@ -4,6 +4,7 @@ Render a Shadertoy 'Image' shader directly to a two-screen wallpaper:
 one full-canvas mp4 plus top/bot crops for the target device.
 """
 
+import argparse
 import os
 import subprocess
 import sys
@@ -135,6 +136,49 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
     return full_path, top_path, bot_path
 
 
+def find_frag_files(input_dir):
+    return sorted(
+        os.path.join(input_dir, f)
+        for f in os.listdir(input_dir)
+        if f.endswith(".frag")
+    )
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("input", help=".frag file or directory of .frag files")
+    p.add_argument("output_dir", help="root output directory")
+    p.add_argument("--duration", type=float, default=20.0, help="seconds")
+    p.add_argument("--fps", type=int, default=60)
+    p.add_argument("--crf", type=int, default=16, help="lower = better quality")
+    p.add_argument("--start", type=float, default=0.0, help="iTime offset at frame 0")
+    p.add_argument("--nvenc", action="store_true", help="encode on the GPU instead of x264")
+    args = p.parse_args()
+
+    if os.path.isdir(args.input):
+        shader_paths = find_frag_files(args.input)
+    else:
+        shader_paths = [args.input]
+
+    succeeded = []
+    failed = []
+    for shader_path in shader_paths:
+        name = os.path.splitext(os.path.basename(shader_path))[0]
+        out_dir = os.path.join(args.output_dir, name)
+        print(f"Rendering {name}...")
+        try:
+            render_shader(shader_path, out_dir, args.duration, args.fps,
+                          args.crf, args.start, args.nvenc)
+            succeeded.append(name)
+        except Exception as e:
+            print(f"  FAILED: {e}", file=sys.stderr)
+            failed.append(name)
+
+    print(f"\n{len(succeeded)} succeeded, {len(failed)} failed")
+    if failed:
+        print("Failed: " + ", ".join(failed), file=sys.stderr)
+        sys.exit(1)
+
+
 if __name__ == "__main__":
-    # Temporary smoke-test entry point; replaced with the full argparse CLI in Task 2.
-    render_shader(sys.argv[1], sys.argv[2], duration=3.0, fps=10, crf=16, start=0.0, nvenc=False)
+    main()
