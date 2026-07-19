@@ -8,6 +8,7 @@ import argparse
 import os
 import subprocess
 import sys
+from shutil import which
 
 import moderngl
 import numpy as np
@@ -155,8 +156,13 @@ def main():
     p.add_argument("--nvenc", action="store_true", help="encode on the GPU instead of x264")
     args = p.parse_args()
 
+    if which("ffmpeg") is None:
+        sys.exit("ffmpeg not found on PATH")
+
     if os.path.isdir(args.input):
         shader_paths = find_frag_files(args.input)
+        if not shader_paths:
+            sys.exit(f"no .frag files found in {args.input}")
     else:
         shader_paths = [args.input]
 
