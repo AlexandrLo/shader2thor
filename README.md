@@ -5,7 +5,7 @@ Converts shaders into a two-screen wallpaper videos for Ayn Thor. Render and scr
 ## Requirements
 
 ```bash
-pip install moderngl numpy
+pip install moderngl numpy Pillow
 ```
 
 `ffmpeg` must be available on `PATH`.
@@ -43,12 +43,12 @@ Each shader gets its own subfolder with three files:
 ```
 output/
   main/
-    main.mp4       # full frame (top + gap + bot)
-    main_top.mp4    # crop for the top screen
-    main_bot.mp4    # crop for the bottom screen
+    main_preview.png   # full-frame still (top + gap + bot), first frame at t = --start
+    main_top.mp4        # crop video for the top screen
+    main_bottom.mp4      # crop video for the bottom screen
 ```
 
-Same layout for single-file and batch mode. The full-frame file isn't a throwaway — it's part of the output.
+Same layout for single-file and batch mode. The preview PNG isn't a throwaway — it's part of the output.
 
 Re-running a batch always re-renders everything — there's no caching or skipping of already-rendered shaders.
 

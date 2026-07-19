@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Render a Shadertoy 'Image' shader directly to a two-screen wallpaper:
-one full-canvas mp4 plus top/bot crops for the target device.
+a full-canvas preview PNG plus top/bottom crop videos for the target device.
 """
 
 import argparse
@@ -13,6 +13,7 @@ from shutil import which
 
 import moderngl
 import numpy as np
+from PIL import Image
 
 # Device geometry (AYN Thor). Edit these constants to target a different device.
 TOP_W, TOP_H = 1920, 1080
@@ -55,16 +56,17 @@ def build_fragment(path):
 
 
 def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
-    """Render one shader to <out_dir>/<name>.mp4, <name>_top.mp4, <name>_bot.mp4.
+    """Render one shader to <out_dir>/<name>_preview.png, <name>_top.mp4, <name>_bottom.mp4.
 
+    The preview is a single still frame (t = start); the crops are full-length videos.
     Raises RuntimeError on shader compile failure or ffmpeg failure.
-    Returns (full_path, top_path, bot_path) on success.
+    Returns (preview_path, top_path, bot_path) on success.
     """
     os.makedirs(out_dir, exist_ok=True)
     name = os.path.splitext(os.path.basename(shader_path))[0]
-    full_path = os.path.join(out_dir, f"{name}.mp4")
+    preview_path = os.path.join(out_dir, f"{name}_preview.png")
     top_path = os.path.join(out_dir, f"{name}_top.mp4")
-    bot_path = os.path.join(out_dir, f"{name}_bot.mp4")
+    bot_path = os.path.join(out_dir, f"{name}_bottom.mp4")
 
     total_frames = int(round(duration * fps))
 
@@ -92,7 +94,7 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
             else ["-c:v", "libx264", "-preset", "slow", "-crf", str(crf)]
 
         filter_complex = (
-            f"[0:v]vflip,split=3[full][s1][s2];"
+            f"[0:v]vflip,split=2[s1][s2];"
             f"[s1]crop={TOP_W}:{TOP_H}:0:0[top];"
             f"[s2]crop={BOT_W}:{BOT_H}:(iw-{BOT_W})/2:{TOP_H + GAP}[bot]"
         )
@@ -103,7 +105,6 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
             "-s", f"{CANVAS_W}x{CANVAS_H}", "-r", str(fps),
             "-i", "-",
             "-filter_complex", filter_complex,
-            "-map", "[full]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", full_path,
             "-map", "[top]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", top_path,
             "-map", "[bot]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", bot_path,
         ]
@@ -131,8 +132,14 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
 
                 ctx.clear(0.0, 0.0, 0.0, 1.0)
                 vao.render(moderngl.TRIANGLES)
+                raw = fbo.read(components=4)
+
+                if frame == 0:
+                    img = Image.frombytes("RGBA", (CANVAS_W, CANVAS_H), raw)
+                    img.transpose(Image.FLIP_TOP_BOTTOM).convert("RGB").save(preview_path)
+
                 try:
-                    ff.stdin.write(fbo.read(components=4))
+                    ff.stdin.write(raw)
                 except BrokenPipeError:
                     break
 
@@ -151,17 +158,33 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
         if ff.returncode != 0:
             raise RuntimeError(f"ffmpeg failed for {name}:\n{b''.join(stderr_chunks).decode(errors='ignore')}")
 
-        return full_path, top_path, bot_path
+        return preview_path, top_path, bot_path
     finally:
         ctx.release()
 
 
 def find_frag_files(input_dir):
-    return sorted(
-        os.path.join(input_dir, f)
-        for f in os.listdir(input_dir)
-        if f.endswith(".frag")
-    )
+    paths = []
+    for root, _, files in os.walk(input_dir):
+        for f in files:
+            if f.endswith(".frag"):
+                paths.append(os.path.join(root, f))
+    return sorted(paths)
+
+
+def infer_single_file_name(shader_path):
+    """Name used for output when a single .frag file (not a directory) is given.
+
+    Preserves subfolders below a 'shaders' root (e.g. shaders/balatro/arcana.frag
+    -> balatro/arcana) so single-file and directory runs produce the same layout.
+    Falls back to the bare filename when there's no 'shaders' component.
+    """
+    parts = os.path.normpath(shader_path).split(os.sep)
+    if "shaders" in parts:
+        rel_parts = parts[parts.index("shaders") + 1:]
+    else:
+        rel_parts = [parts[-1]]
+    return os.path.splitext(os.path.join(*rel_parts))[0]
 
 
 def main():
@@ -182,13 +205,14 @@ def main():
         shader_paths = find_frag_files(args.input)
         if not shader_paths:
             sys.exit(f"no .frag files found in {args.input}")
+        names = [os.path.splitext(os.path.relpath(p, args.input))[0] for p in shader_paths]
     else:
         shader_paths = [args.input]
+        names = [infer_single_file_name(args.input)]
 
     succeeded = []
     failed = []
-    for shader_path in shader_paths:
-        name = os.path.splitext(os.path.basename(shader_path))[0]
+    for shader_path, name in zip(shader_paths, names):
         out_dir = os.path.join(args.output_dir, name)
         print(f"Rendering {name}...")
         try:
