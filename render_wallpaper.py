@@ -8,6 +8,7 @@ import argparse
 import os
 import subprocess
 import sys
+import threading
 from shutil import which
 
 import moderngl
@@ -73,68 +74,86 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
         ctx = moderngl.create_context(standalone=True)
 
     try:
-        prog = ctx.program(vertex_shader=VERTEX, fragment_shader=build_fragment(shader_path))
-    except Exception as e:
-        raise RuntimeError(f"shader failed to compile: {e}") from e
+        try:
+            prog = ctx.program(vertex_shader=VERTEX, fragment_shader=build_fragment(shader_path))
+        except Exception as e:
+            raise RuntimeError(f"shader failed to compile: {e}") from e
 
-    quad = ctx.buffer(np.array([-1, -1, 3, -1, -1, 3], dtype="f4").tobytes())
-    vao = ctx.simple_vertex_array(prog, quad, "in_vert")
-    fbo = ctx.simple_framebuffer((CANVAS_W, CANVAS_H), components=4)
-    fbo.use()
+        quad = ctx.buffer(np.array([-1, -1, 3, -1, -1, 3], dtype="f4").tobytes())
+        vao = ctx.simple_vertex_array(prog, quad, "in_vert")
+        fbo = ctx.simple_framebuffer((CANVAS_W, CANVAS_H), components=4)
+        fbo.use()
 
-    def setu(uname, value):
-        if uname in prog:
-            prog[uname].value = value
+        def setu(uname, value):
+            if uname in prog:
+                prog[uname].value = value
 
-    codec = ["-c:v", "h264_nvenc", "-preset", "p7", "-cq", str(crf)] if nvenc \
-        else ["-c:v", "libx264", "-preset", "slow", "-crf", str(crf)]
+        codec = ["-c:v", "h264_nvenc", "-preset", "p7", "-cq", str(crf)] if nvenc \
+            else ["-c:v", "libx264", "-preset", "slow", "-crf", str(crf)]
 
-    filter_complex = (
-        f"[0:v]vflip,split=3[full][s1][s2];"
-        f"[s1]crop={TOP_W}:{TOP_H}:0:0[top];"
-        f"[s2]crop={BOT_W}:{BOT_H}:(iw-{BOT_W})/2:{TOP_H + GAP}[bot]"
-    )
+        filter_complex = (
+            f"[0:v]vflip,split=3[full][s1][s2];"
+            f"[s1]crop={TOP_W}:{TOP_H}:0:0[top];"
+            f"[s2]crop={BOT_W}:{BOT_H}:(iw-{BOT_W})/2:{TOP_H + GAP}[bot]"
+        )
 
-    cmd = [
-        "ffmpeg", "-y",
-        "-f", "rawvideo", "-pix_fmt", "rgba",
-        "-s", f"{CANVAS_W}x{CANVAS_H}", "-r", str(fps),
-        "-i", "-",
-        "-filter_complex", filter_complex,
-        "-map", "[full]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", full_path,
-        "-map", "[top]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", top_path,
-        "-map", "[bot]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", bot_path,
-    ]
-    ff = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = [
+            "ffmpeg", "-y",
+            "-f", "rawvideo", "-pix_fmt", "rgba",
+            "-s", f"{CANVAS_W}x{CANVAS_H}", "-r", str(fps),
+            "-i", "-",
+            "-filter_complex", filter_complex,
+            "-map", "[full]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", full_path,
+            "-map", "[top]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", top_path,
+            "-map", "[bot]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", bot_path,
+        ]
+        ff = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    dt = 1.0 / fps
-    try:
-        for frame in range(total_frames):
-            t = start + frame * dt
-            setu("iResolution", (float(CANVAS_W), float(CANVAS_H), 1.0))
-            setu("iTime", t)
-            setu("iTimeDelta", dt)
-            setu("iFrame", frame)
-            setu("iMouse", (0.0, 0.0, 0.0, 0.0))
-            setu("iDate", (2026.0, 7.0, 19.0, t))
+        stderr_chunks = []
 
-            ctx.clear(0.0, 0.0, 0.0, 1.0)
-            vao.render(moderngl.TRIANGLES)
-            ff.stdin.write(fbo.read(components=4))
+        def _drain_stderr():
+            for line in ff.stderr:
+                stderr_chunks.append(line)
 
-            if frame % fps == 0:
-                pct = 100.0 * frame / total_frames
-                print(f"\r  {name}: {frame}/{total_frames} ({pct:.0f}%)", end="", flush=True)
+        stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
+        stderr_thread.start()
+
+        dt = 1.0 / fps
+        try:
+            for frame in range(total_frames):
+                t = start + frame * dt
+                setu("iResolution", (float(CANVAS_W), float(CANVAS_H), 1.0))
+                setu("iTime", t)
+                setu("iTimeDelta", dt)
+                setu("iFrame", frame)
+                setu("iMouse", (0.0, 0.0, 0.0, 0.0))
+                setu("iDate", (2026.0, 7.0, 19.0, t))
+
+                ctx.clear(0.0, 0.0, 0.0, 1.0)
+                vao.render(moderngl.TRIANGLES)
+                try:
+                    ff.stdin.write(fbo.read(components=4))
+                except BrokenPipeError:
+                    break
+
+                if frame % fps == 0:
+                    pct = 100.0 * frame / total_frames
+                    print(f"\r  {name}: {frame}/{total_frames} ({pct:.0f}%)", end="", flush=True)
+        finally:
+            try:
+                ff.stdin.close()
+            except BrokenPipeError:
+                pass
+            ff.wait()
+            stderr_thread.join()
+
+        print()
+        if ff.returncode != 0:
+            raise RuntimeError(f"ffmpeg failed for {name}:\n{b''.join(stderr_chunks).decode(errors='ignore')}")
+
+        return full_path, top_path, bot_path
     finally:
-        ff.stdin.close()
-        stderr_output = ff.stderr.read()
-        ff.wait()
-
-    print()
-    if ff.returncode != 0:
-        raise RuntimeError(f"ffmpeg failed for {name}:\n{stderr_output.decode(errors='ignore')}")
-
-    return full_path, top_path, bot_path
+        ctx.release()
 
 
 def find_frag_files(input_dir):
