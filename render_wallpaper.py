@@ -5,6 +5,7 @@ a full-canvas preview PNG plus top/bottom crop videos for the target device.
 """
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -20,6 +21,18 @@ TOP_W, TOP_H = 1920, 1080
 BOT_W, BOT_H = 1240, 1080
 GAP = 82
 CANVAS_W, CANVAS_H = TOP_W, TOP_H + GAP + BOT_H  # 1920 x 2242
+
+DEFAULT_DURATION = 20.0
+LOOPS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shaders", "loops.json")
+
+
+def load_loops():
+    """Map of shader name -> exact loop period in seconds, from shaders/loops.json."""
+    try:
+        with open(LOOPS_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
 
 VERTEX = """
 #version 330
@@ -191,7 +204,9 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("input", help=".frag file or directory of .frag files")
     p.add_argument("output_dir", help="root output directory")
-    p.add_argument("--duration", type=float, default=20.0, help="seconds")
+    p.add_argument("--duration", type=float, default=None,
+                    help="seconds (default: exact loop length from shaders/loops.json, else "
+                         f"{DEFAULT_DURATION:g})")
     p.add_argument("--fps", type=int, default=60)
     p.add_argument("--crf", type=int, default=16, help="lower = better quality")
     p.add_argument("--start", type=float, default=0.0, help="iTime offset at frame 0")
@@ -210,13 +225,19 @@ def main():
         shader_paths = [args.input]
         names = [infer_single_file_name(args.input)]
 
+    loops = load_loops()
+
     succeeded = []
     failed = []
     for shader_path, name in zip(shader_paths, names):
         out_dir = os.path.join(args.output_dir, name)
-        print(f"Rendering {name}...")
+        if args.duration is not None:
+            duration = args.duration
+        else:
+            duration = loops.get(name, DEFAULT_DURATION)
+        print(f"Rendering {name}... (duration={duration:g}s)")
         try:
-            render_shader(shader_path, out_dir, args.duration, args.fps,
+            render_shader(shader_path, out_dir, duration, args.fps,
                           args.crf, args.start, args.nvenc)
             succeeded.append(name)
         except Exception as e:
