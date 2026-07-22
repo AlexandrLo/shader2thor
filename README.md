@@ -28,13 +28,25 @@ The input type (a `.frag` file or a directory) is auto-detected. Flags:
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `--duration` | `20.0` | Clip length, seconds |
+| `--duration` | see below | Clip length, seconds |
 | `--fps` | `60` | Frames per second |
 | `--crf` | `16` | Encoding quality (lower = better) |
 | `--start` | `0.0` | `iTime` offset at frame 0 |
 | `--nvenc` | off | Encode on the GPU (`h264_nvenc`) instead of `libx264` |
 
 Canvas resolution isn't a flag — it's always derived from the device geometry (see below).
+
+Shaders can be organized in subfolders under `shaders/` (e.g. `shaders/balatro/arcana.frag`); batch mode picks them up recursively, and single-file mode preserves the subfolder in the output path (`output/balatro/arcana/`).
+
+## Loop durations
+
+`shaders/loops.json` maps a shader name to its exact loop period in seconds:
+
+```json
+{ "aurora": 40.0, "pew": 6.283185307179586 }
+```
+
+When `--duration` isn't passed, a shader listed there renders for exactly that long (so the clip loops seamlessly); anything not listed falls back to 20 seconds. Passing `--duration` explicitly overrides this for every shader in the run.
 
 ## Output
 
@@ -73,7 +85,3 @@ To target a different device, edit these constants directly — there's no flag 
 ## Shader format
 
 Paste the code from Shadertoy's **Image** tab as-is into a `.frag` file — just the body of `mainImage`, no `#version` line, no redefining `iResolution`/`iTime`/etc. yourself. The wrapper is added automatically.
-
-## Legacy files
-
-`shadertoy2mp4.py` (render without screen-splitting) and `dualwapapermaker.py` (a third-party GUI that split an already-rendered video) are obsolete — `render_wallpaper.py` fully replaces both. They're kept in the working copy during the transition and are not part of the project's git history.
