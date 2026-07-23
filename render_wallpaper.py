@@ -16,14 +16,29 @@ import moderngl
 import numpy as np
 from PIL import Image
 
-# Device geometry (AYN Thor). Edit these constants to target a different device.
-TOP_W, TOP_H = 1920, 1080
-BOT_W, BOT_H = 1240, 1080
-GAP = 82
-CANVAS_W, CANVAS_H = TOP_W, TOP_H + GAP + BOT_H  # 1920 x 2242
-
 DEFAULT_DURATION = 20.0
-LOOPS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shaders", "loops.json")
+DEFAULT_FPS = 30
+DEFAULT_CRF = 5
+DEFAULT_START = 0.0
+DEFAULT_TOP = "1920x1080"
+DEFAULT_BOTTOM = "1240x1080"
+DEFAULT_GAP = 82
+
+
+def parse_size(s):
+    """Parse a 'WxH' string (e.g. '1920x1080') into an (int, int) tuple."""
+    try:
+        w, h = s.lower().split("x")
+        return int(w), int(h)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"invalid size {s!r}, expected WxH (e.g. 1920x1080)"
+        )
+
+
+LOOPS_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "shaders", "loops.json"
+)
 
 
 def load_loops():
@@ -33,6 +48,7 @@ def load_loops():
             return json.load(f)
     except FileNotFoundError:
         return {}
+
 
 VERTEX = """
 #version 330
@@ -64,17 +80,31 @@ void main() {
 def build_fragment(path):
     with open(path, "r", encoding="utf-8") as f:
         body = f.read()
-    lines = [l for l in body.splitlines() if not l.strip().startswith("#version")]
+    lines = [ln for ln in body.splitlines() if not ln.strip().startswith("#version")]
     return PREAMBLE + "\n".join(lines) + EPILOGUE
 
 
-def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
+def render_shader(
+    shader_path,
+    out_dir,
+    duration,
+    fps,
+    crf,
+    start,
+    nvenc,
+    top_w,
+    top_h,
+    bot_w,
+    bot_h,
+    gap,
+):
     """Render one shader to <out_dir>/<name>_preview.png, <name>_top.mp4, <name>_bottom.mp4.
 
     The preview is a single still frame (t = start); the crops are full-length videos.
     Raises RuntimeError on shader compile failure or ffmpeg failure.
     Returns (preview_path, top_path, bot_path) on success.
     """
+    canvas_w, canvas_h = top_w, top_h + gap + bot_h
     os.makedirs(out_dir, exist_ok=True)
     name = os.path.splitext(os.path.basename(shader_path))[0]
     preview_path = os.path.join(out_dir, f"{name}_preview.png")
@@ -84,49 +114,81 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
     total_frames = int(round(duration * fps))
 
     try:
-        ctx = moderngl.create_context(standalone=True, backend="egl")
+        ctx = moderngl.create_context(standalone=True, backend="egl")  # type: ignore[arg-type]
     except Exception:
         ctx = moderngl.create_context(standalone=True)
 
     try:
         try:
-            prog = ctx.program(vertex_shader=VERTEX, fragment_shader=build_fragment(shader_path))
+            prog = ctx.program(
+                vertex_shader=VERTEX, fragment_shader=build_fragment(shader_path)
+            )
         except Exception as e:
             raise RuntimeError(f"shader failed to compile: {e}") from e
 
         quad = ctx.buffer(np.array([-1, -1, 3, -1, -1, 3], dtype="f4").tobytes())
         vao = ctx.simple_vertex_array(prog, quad, "in_vert")
-        fbo = ctx.simple_framebuffer((CANVAS_W, CANVAS_H), components=4)
+        fbo = ctx.simple_framebuffer((canvas_w, canvas_h), components=4)
         fbo.use()
 
         def setu(uname, value):
-            if uname in prog:
-                prog[uname].value = value
+            member = prog.get(uname, None)
+            if isinstance(member, moderngl.Uniform):
+                member.value = value
 
-        codec = ["-c:v", "h264_nvenc", "-preset", "p7", "-cq", str(crf)] if nvenc \
+        codec = (
+            ["-c:v", "h264_nvenc", "-preset", "p7", "-cq", str(crf)]
+            if nvenc
             else ["-c:v", "libx264", "-preset", "slow", "-crf", str(crf)]
+        )
 
         filter_complex = (
             f"[0:v]vflip,split=2[s1][s2];"
-            f"[s1]crop={TOP_W}:{TOP_H}:0:0[top];"
-            f"[s2]crop={BOT_W}:{BOT_H}:(iw-{BOT_W})/2:{TOP_H + GAP}[bot]"
+            f"[s1]crop={top_w}:{top_h}:0:0[top];"
+            f"[s2]crop={bot_w}:{bot_h}:(iw-{bot_w})/2:{top_h + gap}[bot]"
         )
 
         cmd = [
-            "ffmpeg", "-y",
-            "-f", "rawvideo", "-pix_fmt", "rgba",
-            "-s", f"{CANVAS_W}x{CANVAS_H}", "-r", str(fps),
-            "-i", "-",
-            "-filter_complex", filter_complex,
-            "-map", "[top]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", top_path,
-            "-map", "[bot]", *codec, "-pix_fmt", "yuv420p", "-movflags", "+faststart", bot_path,
+            "ffmpeg",
+            "-y",
+            "-f",
+            "rawvideo",
+            "-pix_fmt",
+            "rgba",
+            "-s",
+            f"{canvas_w}x{canvas_h}",
+            "-r",
+            str(fps),
+            "-i",
+            "-",
+            "-filter_complex",
+            filter_complex,
+            "-map",
+            "[top]",
+            *codec,
+            "-pix_fmt",
+            "yuv420p",
+            "-movflags",
+            "+faststart",
+            top_path,
+            "-map",
+            "[bot]",
+            *codec,
+            "-pix_fmt",
+            "yuv420p",
+            "-movflags",
+            "+faststart",
+            bot_path,
         ]
         ff = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        assert ff.stdin is not None and ff.stderr is not None
+        ff_stdin = ff.stdin
+        ff_stderr = ff.stderr
 
         stderr_chunks = []
 
         def _drain_stderr():
-            for line in ff.stderr:
+            for line in ff_stderr:
                 stderr_chunks.append(line)
 
         stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
@@ -136,7 +198,7 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
         try:
             for frame in range(total_frames):
                 t = start + frame * dt
-                setu("iResolution", (float(CANVAS_W), float(CANVAS_H), 1.0))
+                setu("iResolution", (float(canvas_w), float(canvas_h), 1.0))
                 setu("iTime", t)
                 setu("iTimeDelta", dt)
                 setu("iFrame", frame)
@@ -148,20 +210,26 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
                 raw = fbo.read(components=4)
 
                 if frame == 0:
-                    img = Image.frombytes("RGBA", (CANVAS_W, CANVAS_H), raw)
-                    img.transpose(Image.FLIP_TOP_BOTTOM).convert("RGB").save(preview_path)
+                    img = Image.frombytes("RGBA", (canvas_w, canvas_h), raw)
+                    img.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB").save(
+                        preview_path
+                    )
 
                 try:
-                    ff.stdin.write(raw)
+                    ff_stdin.write(raw)
                 except BrokenPipeError:
                     break
 
                 if frame % fps == 0:
                     pct = 100.0 * frame / total_frames
-                    print(f"\r  {name}: {frame}/{total_frames} ({pct:.0f}%)", end="", flush=True)
+                    print(
+                        f"\r  {name}: {frame}/{total_frames} ({pct:.0f}%)",
+                        end="",
+                        flush=True,
+                    )
         finally:
             try:
-                ff.stdin.close()
+                ff_stdin.close()
             except BrokenPipeError:
                 pass
             ff.wait()
@@ -169,7 +237,9 @@ def render_shader(shader_path, out_dir, duration, fps, crf, start, nvenc):
 
         print()
         if ff.returncode != 0:
-            raise RuntimeError(f"ffmpeg failed for {name}:\n{b''.join(stderr_chunks).decode(errors='ignore')}")
+            raise RuntimeError(
+                f"ffmpeg failed for {name}:\n{b''.join(stderr_chunks).decode(errors='ignore')}"
+            )
 
         return preview_path, top_path, bot_path
     finally:
@@ -194,7 +264,7 @@ def infer_single_file_name(shader_path):
     """
     parts = os.path.normpath(shader_path).split(os.sep)
     if "shaders" in parts:
-        rel_parts = parts[parts.index("shaders") + 1:]
+        rel_parts = parts[parts.index("shaders") + 1 :]
     else:
         rel_parts = [parts[-1]]
     return os.path.splitext(os.path.join(*rel_parts))[0]
@@ -204,14 +274,45 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("input", help=".frag file or directory of .frag files")
     p.add_argument("output_dir", help="root output directory")
-    p.add_argument("--duration", type=float, default=None,
-                    help="seconds (default: exact loop length from shaders/loops.json, else "
-                         f"{DEFAULT_DURATION:g})")
-    p.add_argument("--fps", type=int, default=30)
-    p.add_argument("--crf", type=int, default=5, help="lower = better quality")
-    p.add_argument("--start", type=float, default=0.0, help="iTime offset at frame 0")
-    p.add_argument("--nvenc", action="store_true", help="encode on the GPU instead of x264")
+    p.add_argument(
+        "--duration",
+        type=float,
+        default=None,
+        help="seconds (default: exact loop length from shaders/loops.json, else "
+        f"{DEFAULT_DURATION:g})",
+    )
+    p.add_argument("--fps", type=int, default=DEFAULT_FPS)
+    p.add_argument(
+        "--crf", type=int, default=DEFAULT_CRF, help="lower = better quality"
+    )
+    p.add_argument(
+        "--start", type=float, default=DEFAULT_START, help="iTime offset at frame 0"
+    )
+    p.add_argument(
+        "--nvenc", action="store_true", help="encode on the GPU instead of x264"
+    )
+    p.add_argument(
+        "--top",
+        type=parse_size,
+        default=DEFAULT_TOP,
+        help=f"top screen size as WxH (default: {DEFAULT_TOP})",
+    )
+    p.add_argument(
+        "--bottom",
+        type=parse_size,
+        default=DEFAULT_BOTTOM,
+        help=f"bottom screen size as WxH (default: {DEFAULT_BOTTOM})",
+    )
+    p.add_argument(
+        "--gap",
+        type=int,
+        default=DEFAULT_GAP,
+        help=f"vertical gap between screens in px (default: {DEFAULT_GAP})",
+    )
     args = p.parse_args()
+
+    top_w, top_h = args.top
+    bot_w, bot_h = args.bottom
 
     if which("ffmpeg") is None:
         sys.exit("ffmpeg not found on PATH")
@@ -220,7 +321,9 @@ def main():
         shader_paths = find_frag_files(args.input)
         if not shader_paths:
             sys.exit(f"no .frag files found in {args.input}")
-        names = [os.path.splitext(os.path.relpath(p, args.input))[0] for p in shader_paths]
+        names = [
+            os.path.splitext(os.path.relpath(p, args.input))[0] for p in shader_paths
+        ]
     else:
         shader_paths = [args.input]
         names = [infer_single_file_name(args.input)]
@@ -237,8 +340,20 @@ def main():
             duration = loops.get(name, DEFAULT_DURATION)
         print(f"Rendering {name}... (duration={duration:g}s)")
         try:
-            render_shader(shader_path, out_dir, duration, args.fps,
-                          args.crf, args.start, args.nvenc)
+            render_shader(
+                shader_path,
+                out_dir,
+                duration,
+                args.fps,
+                args.crf,
+                args.start,
+                args.nvenc,
+                top_w,
+                top_h,
+                bot_w,
+                bot_h,
+                args.gap,
+            )
             succeeded.append(name)
         except Exception as e:
             print(f"  FAILED: {e}", file=sys.stderr)

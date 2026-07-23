@@ -35,8 +35,11 @@ The input type (a `.frag` file or a directory) is auto-detected. Flags:
 | `--crf` | `5` | Encoding quality (lower = better) |
 | `--start` | `0.0` | `iTime` offset at frame 0 |
 | `--nvenc` | off | Encode on the GPU (`h264_nvenc`) instead of `libx264` |
+| `--top` | `1920x1080` | Top screen size as `WxH` |
+| `--bottom` | `1240x1080` | Bottom screen size as `WxH` |
+| `--gap` | `82` | Vertical gap between screens, in px |
 
-Canvas resolution isn't a flag — it's always derived from the device geometry (see below).
+Canvas resolution isn't a flag itself — it's derived from `--top`/`--bottom`/`--gap` (see [Device geometry](#device-geometry)).
 
 Shaders can be organized in subfolders under `shaders/` (e.g. `shaders/balatro/arcana.frag`); batch mode picks them up recursively, and single-file mode preserves the subfolder in the output path (`output/balatro/arcana/`).
 
@@ -68,12 +71,10 @@ Re-running a batch always re-renders everything — there's no caching or skippi
 
 ## Device geometry
 
-Hardcoded at the top of `render_wallpaper.py`:
+Defaults target the AYN Thor: top screen `1920x1080`, bottom screen `1240x1080`, `82`px gap between them. Canvas size is derived as `top_w x (top_h + gap + bot_h)`.
 
-```python
-TOP_W, TOP_H = 1920, 1080
-BOT_W, BOT_H = 1240, 1080
-GAP = 82
+To target a different device, override via flags:
+
+```bash
+python render_wallpaper.py shaders/main.frag output --top 2000x1200 --bottom 1300x1100 --gap 64
 ```
-
-To target a different device, edit these constants directly — there's no flag for it.
