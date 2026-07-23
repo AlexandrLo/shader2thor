@@ -1,4 +1,13 @@
 {
+  "balatro/arcana": 26.0,
+  "balatro/spectral": 26.0,
+  "balatro/felt": 26.0,
+  "balatro/fish": 120.0,
+  "balatro/flint": 120.0,
+  "balatro/main": 120.0,
+  "balatro/ox": 120.0,
+  "balatro/serpent": 120.0,
+  "balatro/wall": 120.0,
   "blackwater": 25.132741228718345,
   "aurora": 40.0,
   "circle_pattern": 18.75,
@@ -7,5 +16,6 @@
   "gradient": 18.84955592153876,
   "halo": 25.132741228718345,
   "pew": 6.283185307179586,
+  "squares": 25.132741228718345,
   "squares2": 80.0
 }

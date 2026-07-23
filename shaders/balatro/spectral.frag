@@ -6,16 +6,23 @@
 #define spin_amount 0.0
 #define spin_time (iTime*spin_amount)
 
+// ---- loop period ---------------------------------------------------------
+// All iTime-dependent terms below are tuned to exact harmonics of ANIM_OMEGA
+// so the whole frame repeats exactly every ANIM_PERIOD seconds.
+#define ANIM_PERIOD 26.0
+#define ANIM_OMEGA (6.283185307179586/ANIM_PERIOD)
+#define SWIRL_FREQ (ANIM_OMEGA*0.5)
+
 // ---- particle settings -------------------------------------------------
 #define P_DENSITY   2.0    // cells across screen height (lower = fewer, bigger spacing)
 #define P_SPEED     0.01  // upward drift speed
 #define P_GLOW      0.015  // glow radius
 #define P_CORE      0.010  // solid core radius
 #define P_BRIGHT    0.50   // overall intensity
-#define P_PIXELATE  1      // 1 = snap to the 4px grid, 0 = smooth
+#define P_PIXELATE  1      // 1 = snap to the pixel_size grid, 0 = smooth
 
 // ---- CRT settings ------------------------------------------------------
-#define SCAN_PITCH    4.0   // pixels per scanline
+#define SCAN_PITCH    3.0   // pixels per scanline
 #define SCAN_STRENGTH 0.20  // 0 = off, 1 = brutal
 #define SCAN_ROLL     0.0   // try 0.3 for a slow rolling bar
 #define MASK_STRENGTH 0.15  // RGB aperture grille
@@ -28,9 +35,17 @@ float hash21(vec2 p){
     return fract(p.x*p.y);
 }
 
+// Snaps a wobble frequency to the nearest harmonic of ANIM_OMEGA so any
+// sin/cos(t*quantizeFreq(f)) term is exactly periodic with period ANIM_PERIOD.
+float quantizeFreq(float f){
+    return max(1.0, floor(f/ANIM_OMEGA + 0.5))*ANIM_OMEGA;
+}
+
 float particleLayer(vec2 uv, float t, float seed){
     uv += seed*17.31;
-    uv.y -= t*P_SPEED*(0.6 + 0.4*fract(seed));
+    float driftMult = 0.6 + 0.4*fract(seed);
+    float driftAmp = P_SPEED*driftMult/ANIM_OMEGA;
+    uv.y -= driftAmp*sin(ANIM_OMEGA*t);
     vec2 gv = fract(uv) - 0.5;
     vec2 id = floor(uv);
     float acc = 0.0;
@@ -41,11 +56,11 @@ float particleLayer(vec2 uv, float t, float seed){
             float n2 = fract(n*93.17);
             float n3 = fract(n*31.41);
             vec2 p = (vec2(n, n2) - 0.5)*0.75;
-            p.x += 0.12*sin(t*(0.25 + 0.45*n3) + n *6.2831);
-            p.y += 0.10*cos(t*(0.20 + 0.35*n2) + n2*6.2831);
+            p.x += 0.12*sin(t*quantizeFreq(0.25 + 0.45*n3) + n *6.2831);
+            p.y += 0.10*cos(t*quantizeFreq(0.20 + 0.35*n2) + n2*6.2831);
             float d = length(gv - o - p);
             float sz = mix(0.5, 1.6, n3);
-            float twinkle = 0.55 + 0.45*sin(t*(0.8 + 1.8*n2) + n*6.2831);
+            float twinkle = 0.55 + 0.45*sin(t*quantizeFreq(0.8 + 1.8*n2) + n*6.2831);
             float glow = (P_GLOW*sz)/max(d, 1e-4);              // halo
             float core = smoothstep(P_CORE*sz, P_CORE*sz*0.3, d)*2.0; // solid dot
             acc += (glow + core)*twinkle*step(0.35, n3);
@@ -57,7 +72,7 @@ float particleLayer(vec2 uv, float t, float seed){
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     //Convert to UV coords (0-1) and floor for pixel effect
-    float pixel_size = 4.0;
+    float pixel_size = 3.0;
     vec2 uv = (floor((fragCoord.xy)*(1./pixel_size))*pixel_size - 0.5*iResolution.xy)/length(iResolution.xy);
     float uv_len = length(uv);
 
@@ -73,7 +88,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     for(int i=0; i < 5; i++) {
 		uv2 += sin(max(uv.x, uv.y)) + uv;
-		uv  += 0.5*vec2(cos(5.1123314 + 0.353*uv2.y + speed*0.131121),sin(uv2.x - 0.113*speed));
+		uv  += 0.5*vec2(cos(5.1123314 + 0.353*uv2.y + speed*SWIRL_FREQ),sin(uv2.x - SWIRL_FREQ*speed));
 		uv  -= 1.0*cos(uv.x + uv.y) - 1.0*sin(uv.x*0.711 - uv.y);
 	}
 
