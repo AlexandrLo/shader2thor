@@ -2,6 +2,8 @@
 
 Converts shaders into a two-screen wallpaper videos for Ayn Thor. Render and screen-splitting happen in one step, no manual work in between.
 
+See [EXAMPLES.md](EXAMPLES.md) for previews and downloads of every shader currently in `output/`.
+
 ## Requirements
 
 ```bash
