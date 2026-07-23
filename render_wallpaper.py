@@ -207,8 +207,8 @@ def main():
     p.add_argument("--duration", type=float, default=None,
                     help="seconds (default: exact loop length from shaders/loops.json, else "
                          f"{DEFAULT_DURATION:g})")
-    p.add_argument("--fps", type=int, default=60)
-    p.add_argument("--crf", type=int, default=16, help="lower = better quality")
+    p.add_argument("--fps", type=int, default=30)
+    p.add_argument("--crf", type=int, default=5, help="lower = better quality")
     p.add_argument("--start", type=float, default=0.0, help="iTime offset at frame 0")
     p.add_argument("--nvenc", action="store_true", help="encode on the GPU instead of x264")
     args = p.parse_args()

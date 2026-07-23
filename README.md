@@ -1,6 +1,6 @@
 # shader2thor
 
-Converts shaders into a two-screen wallpaper videos for Ayn Thor. Render and screen-splitting happen in one step, no manual work in between.
+Converts shaders into a two-screen wallpaper videos for Ayn Thor.
 
 See [EXAMPLES.md](EXAMPLES.md) for previews and downloads of every shader currently in `output/`.
 
@@ -17,22 +17,22 @@ pip install moderngl numpy Pillow
 Single shader:
 
 ```bash
-python render_wallpaper.py shaders/main.frag output --duration 25 --fps 30
+python render_wallpaper.py shaders/main.frag output
 ```
 
 Whole folder of shaders (batch):
 
 ```bash
-python render_wallpaper.py shaders output --duration 25 --fps 30
+python render_wallpaper.py shaders output
 ```
 
 The input type (a `.frag` file or a directory) is auto-detected. Flags:
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `--duration` | see below | Clip length, seconds |
-| `--fps` | `60` | Frames per second |
-| `--crf` | `16` | Encoding quality (lower = better) |
+| `--duration` | see [Loop durations](#loop-durations) | Clip length, seconds |
+| `--fps` | `30` | Frames per second |
+| `--crf` | `5` | Encoding quality (lower = better) |
 | `--start` | `0.0` | `iTime` offset at frame 0 |
 | `--nvenc` | off | Encode on the GPU (`h264_nvenc`) instead of `libx264` |
 
@@ -57,7 +57,7 @@ Each shader gets its own subfolder with three files:
 ```
 output/
   main/
-    main_preview.png   # full-frame still (top + gap + bot), first frame at t = --start
+    main_preview.png   # full-frame still (top + gap + bottom), first frame at t = --start
     main_top.mp4        # crop video for the top screen
     main_bottom.mp4      # crop video for the bottom screen
 ```
@@ -77,13 +77,3 @@ GAP = 82
 ```
 
 To target a different device, edit these constants directly — there's no flag for it.
-
-## Error handling
-
-- No `ffmpeg` on `PATH` → clean error message and exit, no traceback.
-- Directory with no `.frag` files → error message and exit.
-- A shader that fails to compile is skipped in batch mode (with a stderr message) while the rest still render; the run ends with an `N succeeded, M failed` summary and a non-zero exit code if anything failed. In single-file mode, a failure exits immediately.
-
-## Shader format
-
-Paste the code from Shadertoy's **Image** tab as-is into a `.frag` file — just the body of `mainImage`, no `#version` line, no redefining `iResolution`/`iTime`/etc. yourself. The wrapper is added automatically.
