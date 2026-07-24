@@ -125,9 +125,15 @@ def normalize_uniform_value(value):
     return value
 
 
-def render_shader(
-    shader_path,
+def render_variation(
+    ctx,
+    prog,
+    vao,
+    fbo,
+    canvas_w,
+    canvas_h,
     out_dir,
+    name,
     duration,
     fps,
     crf,
@@ -139,20 +145,149 @@ def render_shader(
     bot_h,
     gap,
 ):
-    """Render one shader to <out_dir>/<name>_preview.png, <name>_top.mp4, <name>_bottom.mp4.
+    """Render one already-compiled program to preview PNG + top/bottom videos.
 
-    The preview is a single still frame (t = start); the crops are full-length videos.
-    Raises RuntimeError on shader compile failure or ffmpeg failure.
-    Returns (preview_path, top_path, bot_path) on success.
+    Variation-specific uniforms must already be set on `prog`. Writes
+    <out_dir>/<name>_preview.png, <name>_top.mp4, <name>_bottom.mp4.
+    Returns (preview_path, top_path, bot_path). Raises RuntimeError on ffmpeg
+    failure.
     """
-    canvas_w, canvas_h = top_w, top_h + gap + bot_h
     os.makedirs(out_dir, exist_ok=True)
-    name = os.path.splitext(os.path.basename(shader_path))[0]
     preview_path = os.path.join(out_dir, f"{name}_preview.png")
     top_path = os.path.join(out_dir, f"{name}_top.mp4")
     bot_path = os.path.join(out_dir, f"{name}_bottom.mp4")
 
     total_frames = int(round(duration * fps))
+
+    codec = (
+        ["-c:v", "h264_nvenc", "-preset", "p7", "-cq", str(crf)]
+        if nvenc
+        else ["-c:v", "libx264", "-preset", "slow", "-crf", str(crf)]
+    )
+
+    filter_complex = (
+        f"[0:v]vflip,split=2[s1][s2];"
+        f"[s1]crop={top_w}:{top_h}:0:0[top];"
+        f"[s2]crop={bot_w}:{bot_h}:(iw-{bot_w})/2:{top_h + gap}[bot]"
+    )
+
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-f",
+        "rawvideo",
+        "-pix_fmt",
+        "rgba",
+        "-s",
+        f"{canvas_w}x{canvas_h}",
+        "-r",
+        str(fps),
+        "-i",
+        "-",
+        "-filter_complex",
+        filter_complex,
+        "-map",
+        "[top]",
+        *codec,
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        top_path,
+        "-map",
+        "[bot]",
+        *codec,
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        bot_path,
+    ]
+    ff = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    assert ff.stdin is not None and ff.stderr is not None
+    ff_stdin = ff.stdin
+    ff_stderr = ff.stderr
+
+    stderr_chunks = []
+
+    def _drain_stderr():
+        for line in ff_stderr:
+            stderr_chunks.append(line)
+
+    stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
+    stderr_thread.start()
+
+    dt = 1.0 / fps
+    try:
+        for frame in range(total_frames):
+            t = start + frame * dt
+            setu(prog, "iResolution", (float(canvas_w), float(canvas_h), 1.0))
+            setu(prog, "iTime", t)
+            setu(prog, "iTimeDelta", dt)
+            setu(prog, "iFrame", frame)
+            setu(prog, "iMouse", (0.0, 0.0, 0.0, 0.0))
+            setu(prog, "iDate", (2026.0, 7.0, 19.0, t))
+
+            ctx.clear(0.0, 0.0, 0.0, 1.0)
+            vao.render(moderngl.TRIANGLES)
+            raw = fbo.read(components=4)
+
+            if frame == 0:
+                img = Image.frombytes("RGBA", (canvas_w, canvas_h), raw)
+                img.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB").save(
+                    preview_path
+                )
+
+            try:
+                ff_stdin.write(raw)
+            except BrokenPipeError:
+                break
+
+            if frame % fps == 0:
+                pct = 100.0 * frame / total_frames
+                print(
+                    f"\r  {name}: {frame}/{total_frames} ({pct:.0f}%)",
+                    end="",
+                    flush=True,
+                )
+    finally:
+        try:
+            ff_stdin.close()
+        except BrokenPipeError:
+            pass
+        ff.wait()
+        stderr_thread.join()
+
+    print()
+    if ff.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg failed for {name}:\n{b''.join(stderr_chunks).decode(errors='ignore')}"
+        )
+
+    return preview_path, top_path, bot_path
+
+
+def render_shader(
+    shader_path,
+    output_root,
+    jobs,
+    fps,
+    crf,
+    start,
+    nvenc,
+    top_w,
+    top_h,
+    bot_w,
+    bot_h,
+    gap,
+):
+    """Compile `shader_path` once and render every job (variation).
+
+    `jobs` is a list of (subpath, prefix, uniforms, duration) as produced by
+    expand_variations. Files for a job go to <output_root>/<subpath>/.
+    Raises RuntimeError on shader compile failure or ffmpeg failure.
+    """
+    canvas_w, canvas_h = top_w, top_h + gap + bot_h
 
     try:
         ctx = moderngl.create_context(standalone=True, backend="egl")  # type: ignore[arg-type]
@@ -172,117 +307,30 @@ def render_shader(
         fbo = ctx.simple_framebuffer((canvas_w, canvas_h), components=4)
         fbo.use()
 
-        def setu(uname, value):
-            member = prog.get(uname, None)
-            if isinstance(member, moderngl.Uniform):
-                member.value = value
-
-        codec = (
-            ["-c:v", "h264_nvenc", "-preset", "p7", "-cq", str(crf)]
-            if nvenc
-            else ["-c:v", "libx264", "-preset", "slow", "-crf", str(crf)]
-        )
-
-        filter_complex = (
-            f"[0:v]vflip,split=2[s1][s2];"
-            f"[s1]crop={top_w}:{top_h}:0:0[top];"
-            f"[s2]crop={bot_w}:{bot_h}:(iw-{bot_w})/2:{top_h + gap}[bot]"
-        )
-
-        cmd = [
-            "ffmpeg",
-            "-y",
-            "-f",
-            "rawvideo",
-            "-pix_fmt",
-            "rgba",
-            "-s",
-            f"{canvas_w}x{canvas_h}",
-            "-r",
-            str(fps),
-            "-i",
-            "-",
-            "-filter_complex",
-            filter_complex,
-            "-map",
-            "[top]",
-            *codec,
-            "-pix_fmt",
-            "yuv420p",
-            "-movflags",
-            "+faststart",
-            top_path,
-            "-map",
-            "[bot]",
-            *codec,
-            "-pix_fmt",
-            "yuv420p",
-            "-movflags",
-            "+faststart",
-            bot_path,
-        ]
-        ff = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-        assert ff.stdin is not None and ff.stderr is not None
-        ff_stdin = ff.stdin
-        ff_stderr = ff.stderr
-
-        stderr_chunks = []
-
-        def _drain_stderr():
-            for line in ff_stderr:
-                stderr_chunks.append(line)
-
-        stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
-        stderr_thread.start()
-
-        dt = 1.0 / fps
-        try:
-            for frame in range(total_frames):
-                t = start + frame * dt
-                setu("iResolution", (float(canvas_w), float(canvas_h), 1.0))
-                setu("iTime", t)
-                setu("iTimeDelta", dt)
-                setu("iFrame", frame)
-                setu("iMouse", (0.0, 0.0, 0.0, 0.0))
-                setu("iDate", (2026.0, 7.0, 19.0, t))
-
-                ctx.clear(0.0, 0.0, 0.0, 1.0)
-                vao.render(moderngl.TRIANGLES)
-                raw = fbo.read(components=4)
-
-                if frame == 0:
-                    img = Image.frombytes("RGBA", (canvas_w, canvas_h), raw)
-                    img.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB").save(
-                        preview_path
-                    )
-
-                try:
-                    ff_stdin.write(raw)
-                except BrokenPipeError:
-                    break
-
-                if frame % fps == 0:
-                    pct = 100.0 * frame / total_frames
-                    print(
-                        f"\r  {name}: {frame}/{total_frames} ({pct:.0f}%)",
-                        end="",
-                        flush=True,
-                    )
-        finally:
-            try:
-                ff_stdin.close()
-            except BrokenPipeError:
-                pass
-            ff.wait()
-            stderr_thread.join()
-
-        print()
-        if ff.returncode != 0:
-            raise RuntimeError(
-                f"ffmpeg failed for {name}:\n{b''.join(stderr_chunks).decode(errors='ignore')}"
+        for subpath, prefix, uniforms, duration in jobs:
+            for uname, uval in uniforms.items():
+                setu(prog, uname, normalize_uniform_value(uval))
+            out_dir = os.path.join(output_root, subpath)
+            render_variation(
+                ctx,
+                prog,
+                vao,
+                fbo,
+                canvas_w,
+                canvas_h,
+                out_dir,
+                prefix,
+                duration,
+                fps,
+                crf,
+                start,
+                nvenc,
+                top_w,
+                top_h,
+                bot_w,
+                bot_h,
+                gap,
             )
-
-        return preview_path, top_path, bot_path
     finally:
         ctx.release()
 
@@ -374,17 +422,16 @@ def main():
     succeeded = []
     failed = []
     for shader_path, name in zip(shader_paths, names):
-        out_dir = os.path.join(args.output_dir, name)
+        entry = loops.get(name)
+        jobs = expand_variations(name, entry, DEFAULT_DURATION)
         if args.duration is not None:
-            duration = args.duration
-        else:
-            duration = loops.get(name, DEFAULT_DURATION)
-        print(f"Rendering {name}... (duration={duration:g}s)")
+            jobs = [(sp, pf, un, args.duration) for (sp, pf, un, _d) in jobs]
+        print(f"Rendering {name}... ({len(jobs)} variation(s))")
         try:
             render_shader(
                 shader_path,
-                out_dir,
-                duration,
+                args.output_dir,
+                jobs,
                 args.fps,
                 args.crf,
                 args.start,

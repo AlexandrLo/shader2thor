@@ -16,6 +16,19 @@
   "gradient": 18.84955592153876,
   "halo": 25.132741228718345,
   "pew": 6.283185307179586,
+  "ps/xmb_psp_new": {
+    "duration": 30.159289474462014,
+    "variations": {
+      "blue": { "uTheme": 1 },
+      "red": { "uTheme": 2 },
+      "magenta": { "uTheme": 3 },
+      "violet": { "uTheme": 4 },
+      "rust": { "uTheme": 5 },
+      "gold": { "uTheme": 6 },
+      "dark": { "uTheme": 7 },
+      "pastel": { "uTheme": 8 }
+    }
+  },
   "squares": 25.132741228718345,
   "squares2": 80.0
 }
