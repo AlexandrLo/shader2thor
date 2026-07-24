@@ -53,9 +53,30 @@ Shaders can be organized in subfolders under `shaders/` (e.g. `shaders/balatro/a
 
 When `--duration` isn't passed, a shader listed there renders for exactly that long (so the clip loops seamlessly); anything not listed falls back to 20 seconds. Passing `--duration` explicitly overrides this for every shader in the run.
 
+## Variations
+
+A single shader can be rendered in several named variations by passing different values into GLSL **uniforms**. Instead of a bare number, give the shader an object in `loops.json` with a shared `duration` and a `variations` map — each entry is a name plus the uniform values for that look:
+
+```json
+"ps/xmb_psp_new": {
+  "duration": 30.159289474462014,
+  "variations": {
+    "blue": { "uTheme": 1 },
+    "red":  { "uTheme": 2 },
+    "dark": { "uTheme": 7 }
+  }
+}
+```
+
+The renderer compiles the shader once and renders every variation, setting its uniforms before each render. Each variation lands in its own subfolder named after the variation (see [Output](#output)).
+
+For this to work the shader must **declare and use the uniform** it's driven by. `xmb_psp_new.frag`, for example, exposes `uniform int uTheme;` and selects one of its 8 color themes from it at runtime. Uniform values map to GLSL types by JSON shape: a number sets an `int`/`float`, and an array sets a `vecN` (e.g. `"colour_1": [0.85, 0.2, 0.2, 1.0]`). A uniform a variation lists but the shader doesn't declare is ignored.
+
+Uniforms persist on the reused program between variations, so each variation should set the full set of uniforms it depends on rather than relying on another variation's leftover values.
+
 ## Output
 
-Each shader gets its own subfolder with three files:
+A shader with no variations gets its own subfolder with three files:
 
 ```
 output/
@@ -63,6 +84,20 @@ output/
     main_preview.png   # full-frame still (top + gap + bottom), first frame at t = --start
     main_top.mp4        # crop video for the top screen
     main_bottom.mp4      # crop video for the bottom screen
+```
+
+A shader with variations nests one level deeper, one subfolder per variation:
+
+```
+output/
+  ps/xmb_psp_new/
+    blue/
+      blue_preview.png
+      blue_top.mp4
+      blue_bottom.mp4
+    red/
+      red_preview.png
+      ...
 ```
 
 Same layout for single-file and batch mode. The preview PNG isn't a throwaway — it's part of the output.
