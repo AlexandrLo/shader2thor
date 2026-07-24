@@ -308,6 +308,11 @@ def render_shader(
         fbo.use()
 
         for subpath, prefix, uniforms, duration in jobs:
+            # The compiled program is reused across all jobs/variations, and
+            # uniform values persist on it between iterations. Only the
+            # uniforms present in this job's dict are set here, so a
+            # variation that omits a uniform will inherit whatever value the
+            # previous variation left set (not the shader's default).
             for uname, uval in uniforms.items():
                 setu(prog, uname, normalize_uniform_value(uval))
             out_dir = os.path.join(output_root, subpath)

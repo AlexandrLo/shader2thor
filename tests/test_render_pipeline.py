@@ -30,3 +30,27 @@ def test_render_shader_produces_per_variation_folders(tmp_path):
         assert (d / f"{v}_preview.png").exists()
         assert (d / f"{v}_top.mp4").exists()
         assert (d / f"{v}_bottom.mp4").exists()
+
+
+def test_render_shader_bare_number_uses_flat_layout(tmp_path):
+    # A shader with no variations (empty uniforms) must render to the legacy
+    # flat layout output/<name>/<basename>_* with NO per-variation subfolder.
+    jobs = [("aurora", "aurora", {}, 0.1)]
+    rw.render_shader(
+        os.path.join(SHADERS, "aurora.frag"),
+        str(tmp_path),
+        jobs,
+        fps=10,
+        crf=30,
+        start=0.0,
+        nvenc=False,
+        top_w=16,
+        top_h=16,
+        bot_w=16,
+        bot_h=16,
+        gap=2,
+    )
+    d = tmp_path / "aurora"
+    assert (d / "aurora_preview.png").exists()
+    assert (d / "aurora_top.mp4").exists()
+    assert (d / "aurora_bottom.mp4").exists()
