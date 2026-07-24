@@ -84,6 +84,23 @@ def build_fragment(path):
     return PREAMBLE + "\n".join(lines) + EPILOGUE
 
 
+def setu(prog, uname, value):
+    """Set uniform `uname` on `prog` if the program declares it, else no-op."""
+    member = prog.get(uname, None)
+    if isinstance(member, moderngl.Uniform):
+        member.value = value
+
+
+def normalize_uniform_value(value):
+    """Convert a JSON config value into a moderngl-settable uniform value.
+
+    Lists become tuples (for vecN uniforms); scalars pass through unchanged.
+    """
+    if isinstance(value, list):
+        return tuple(value)
+    return value
+
+
 def render_shader(
     shader_path,
     out_dir,
