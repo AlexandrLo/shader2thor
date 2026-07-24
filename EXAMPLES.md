@@ -267,3 +267,51 @@ preview opens the directory with all files for that variant.
 [![squares2](output/squares2/squares2_preview.png)](output/squares2/)
 
 [top mp4](output/squares2/squares2_top.mp4) · [bottom mp4](output/squares2/squares2_bottom.mp4)
+
+## xmb_psp_new/blue
+
+[![xmb_psp_new/blue](output/xmb_psp_new/blue/blue_preview.png)](output/xmb_psp_new/blue/)
+
+[top mp4](output/xmb_psp_new/blue/blue_top.mp4) · [bottom mp4](output/xmb_psp_new/blue/blue_bottom.mp4)
+
+## xmb_psp_new/dark
+
+[![xmb_psp_new/dark](output/xmb_psp_new/dark/dark_preview.png)](output/xmb_psp_new/dark/)
+
+[top mp4](output/xmb_psp_new/dark/dark_top.mp4) · [bottom mp4](output/xmb_psp_new/dark/dark_bottom.mp4)
+
+## xmb_psp_new/gold
+
+[![xmb_psp_new/gold](output/xmb_psp_new/gold/gold_preview.png)](output/xmb_psp_new/gold/)
+
+[top mp4](output/xmb_psp_new/gold/gold_top.mp4) · [bottom mp4](output/xmb_psp_new/gold/gold_bottom.mp4)
+
+## xmb_psp_new/magenta
+
+[![xmb_psp_new/magenta](output/xmb_psp_new/magenta/magenta_preview.png)](output/xmb_psp_new/magenta/)
+
+[top mp4](output/xmb_psp_new/magenta/magenta_top.mp4) · [bottom mp4](output/xmb_psp_new/magenta/magenta_bottom.mp4)
+
+## xmb_psp_new/pastel
+
+[![xmb_psp_new/pastel](output/xmb_psp_new/pastel/pastel_preview.png)](output/xmb_psp_new/pastel/)
+
+[top mp4](output/xmb_psp_new/pastel/pastel_top.mp4) · [bottom mp4](output/xmb_psp_new/pastel/pastel_bottom.mp4)
+
+## xmb_psp_new/red
+
+[![xmb_psp_new/red](output/xmb_psp_new/red/red_preview.png)](output/xmb_psp_new/red/)
+
+[top mp4](output/xmb_psp_new/red/red_top.mp4) · [bottom mp4](output/xmb_psp_new/red/red_bottom.mp4)
+
+## xmb_psp_new/rust
+
+[![xmb_psp_new/rust](output/xmb_psp_new/rust/rust_preview.png)](output/xmb_psp_new/rust/)
+
+[top mp4](output/xmb_psp_new/rust/rust_top.mp4) · [bottom mp4](output/xmb_psp_new/rust/rust_bottom.mp4)
+
+## xmb_psp_new/violet
+
+[![xmb_psp_new/violet](output/xmb_psp_new/violet/violet_preview.png)](output/xmb_psp_new/violet/)
+
+[top mp4](output/xmb_psp_new/violet/violet_top.mp4) · [bottom mp4](output/xmb_psp_new/violet/violet_bottom.mp4)
