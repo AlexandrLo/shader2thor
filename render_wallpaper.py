@@ -50,6 +50,30 @@ def load_loops():
         return {}
 
 
+def expand_variations(name, entry, default_duration):
+    """Expand a loops.json entry for shader `name` into render jobs.
+
+    Returns a list of (subpath, prefix, uniforms, duration):
+      subpath  - path under the output root for this job's files
+      prefix   - filename stem for the preview/top/bottom outputs
+      uniforms - dict of uniform-name -> value to set (empty for no variations)
+      duration - loop length in seconds
+
+    `entry` is the loops.json value for `name`:
+      - None or a number -> one job, no uniforms, base output layout
+      - {"duration", "variations": {vname: {uniform: value}}} -> one job per
+        variation, all sharing `duration`, output nested under name/vname
+    """
+    if isinstance(entry, dict):
+        duration = entry.get("duration", default_duration)
+        jobs = []
+        for vname, uniforms in entry.get("variations", {}).items():
+            jobs.append((os.path.join(name, vname), vname, uniforms, duration))
+        return jobs
+    duration = entry if isinstance(entry, (int, float)) else default_duration
+    return [(name, os.path.basename(name), {}, duration)]
+
+
 VERTEX = """
 #version 330
 in vec2 in_vert;
