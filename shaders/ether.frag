@@ -9,6 +9,14 @@ float field(inout vec3 s, float t, float r) {
          + sin(sin(sin(s += s + t * .8).y + s).z + s).x * .5 - 1. - r;
 }
 
+// Interleaved Gradient Noise (Jorge Jimenez, CoD:AW) remapped to a triangular
+// distribution, used to dither the final color and mask banding.
+float ditherNoise( in vec2 fragCoord )
+{
+    float noise = fract(52.9829189 * fract(dot(fragCoord, vec2(0.06711056, 0.00583715))));
+    return noise - 0.5;
+}
+
 void mainImage(out vec4 o, vec2 u) {
     vec3 p, s, O, R = iResolution;
     float t = iTime, d = 2.5, r;
@@ -23,4 +31,7 @@ void mainImage(out vec4 o, vec2 u) {
           * (vec3(.1, .3, .4) - vec3(10, 5, 6) * field(s, t, r) / 4.);
         o.xyz = O;
     }
+
+    // Dither to hide banding
+    o.xyz += ditherNoise(u) / 64.0;
 }

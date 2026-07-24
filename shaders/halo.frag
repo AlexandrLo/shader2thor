@@ -1,3 +1,11 @@
+// Interleaved Gradient Noise (Jorge Jimenez, CoD:AW) remapped to a triangular
+// distribution, used to dither the final color and mask banding.
+float ditherNoise( in vec2 fragCoord )
+{
+    float noise = fract(52.9829189 * fract(dot(fragCoord, vec2(0.06711056, 0.00583715))));
+    return noise - 0.5;
+}
+
 vec3 hash33(vec3 p3)
 {
 	p3 = fract(p3 * vec3(.1031,.11369,.13787));
@@ -110,4 +118,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 bg = BG_COLOR;
 
     fragColor.rgb = mix(bg, col.rgb, col.a); //normal blend
+
+    // Dither to hide banding
+    fragColor.rgb += ditherNoise(fragCoord) / 32.0;
 }

@@ -30,6 +30,15 @@ float triNoise2d(in vec2 p, float spd)
 }
 
 float hash21(in vec2 n){ return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453); }
+
+// Interleaved Gradient Noise (Jorge Jimenez, CoD:AW) remapped to a triangular
+// distribution, used to dither the final color and mask banding.
+float ditherNoise( in vec2 fragCoord )
+{
+    float noise = fract(52.9829189 * fract(dot(fragCoord, vec2(0.06711056, 0.00583715))));
+    return noise - 0.5;
+}
+
 vec4 aurora(vec3 ro, vec3 rd)
 {
     vec4 col = vec4(0);
@@ -123,6 +132,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         float nz2 = triNoise2d(pos.xz*vec2(.5,.7), 0.);
         col += mix(vec3(0.2,0.25,0.5)*0.08,vec3(0.3,0.3,0.5)*0.7, nz2*0.4);
     }
-    
+
+    // Dither to hide banding
+    col += ditherNoise(fragCoord) / 64.0;
+
 	fragColor = vec4(col, 1.);
 }

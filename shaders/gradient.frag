@@ -13,6 +13,14 @@ vec2 hash( vec2 p )
 	return fract(sin(p)*43758.5453);
 }
 
+// Interleaved Gradient Noise (Jorge Jimenez, CoD:AW) remapped to a triangular
+// distribution, used to dither the final color and mask 8-bit banding.
+float ditherNoise( in vec2 fragCoord )
+{
+    float noise = fract(52.9829189 * fract(dot(fragCoord, vec2(0.06711056, 0.00583715))));
+    return noise - 0.5;
+}
+
 float noise( in vec2 p )
 {
     vec2 i = floor( p );
@@ -67,6 +75,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 finalComp = mix(layer1, layer2, S(.5, -.3, tuv.y));
     
     vec3 col = finalComp;
-    
+
+    // Dither to hide banding: triangular noise well above one quantization
+    // step — the image is already a soft blurry gradient, so extra grain reads
+    // as texture rather than degrading it
+    col += ditherNoise(fragCoord) / 32.0;
+
     fragColor = vec4(col,1.0);
 }
