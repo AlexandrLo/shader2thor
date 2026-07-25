@@ -199,7 +199,26 @@
   "circle-pattern": 18.75,
   "ether": 31.4,
   "fall-guys": 15.707963267948966,
-  "gradient": 18.84955592153876,
+  "gradient": {
+    "duration": 18.84955592153876,
+    "variations": {
+      "dawn": {
+        "uTheme": 1
+      },
+      "sunset": {
+        "uTheme": 2
+      },
+      "mint": {
+        "uTheme": 3
+      },
+      "ember": {
+        "uTheme": 4
+      },
+      "arctic": {
+        "uTheme": 5
+      }
+    }
+  },
   "halo": 25.132741228718345,
   "pew": 6.283185307179586,
   "psp-original": {

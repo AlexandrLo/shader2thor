@@ -244,11 +244,35 @@ preview opens the directory with all files for that variant.
 
 [top mp4](output/fall-guys/fall_guys_top.mp4) · [bottom mp4](output/fall-guys/fall_guys_bottom.mp4)
 
-## gradient
+## gradient/arctic
 
-[![gradient](output/gradient/gradient_preview.png)](output/gradient/)
+[![gradient/arctic](output/gradient/arctic/arctic_preview.png)](output/gradient/arctic/)
 
-[top mp4](output/gradient/gradient_top.mp4) · [bottom mp4](output/gradient/gradient_bottom.mp4)
+[top mp4](output/gradient/arctic/arctic_top.mp4) · [bottom mp4](output/gradient/arctic/arctic_bottom.mp4)
+
+## gradient/dawn
+
+[![gradient/dawn](output/gradient/dawn/dawn_preview.png)](output/gradient/dawn/)
+
+[top mp4](output/gradient/dawn/dawn_top.mp4) · [bottom mp4](output/gradient/dawn/dawn_bottom.mp4)
+
+## gradient/ember
+
+[![gradient/ember](output/gradient/ember/ember_preview.png)](output/gradient/ember/)
+
+[top mp4](output/gradient/ember/ember_top.mp4) · [bottom mp4](output/gradient/ember/ember_bottom.mp4)
+
+## gradient/mint
+
+[![gradient/mint](output/gradient/mint/mint_preview.png)](output/gradient/mint/)
+
+[top mp4](output/gradient/mint/mint_top.mp4) · [bottom mp4](output/gradient/mint/mint_bottom.mp4)
+
+## gradient/sunset
+
+[![gradient/sunset](output/gradient/sunset/sunset_preview.png)](output/gradient/sunset/)
+
+[top mp4](output/gradient/sunset/sunset_top.mp4) · [bottom mp4](output/gradient/sunset/sunset_bottom.mp4)
 
 ## halo
 

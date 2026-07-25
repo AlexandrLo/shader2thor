@@ -1,5 +1,46 @@
 #define S(a,b,t) smoothstep(a,b,t)
 
+uniform int uTheme;
+
+// ---- theme-dependent parameters (filled at runtime by initTheme) ----------
+// The image is a four-corner blend: layer1 is the horizontal gradient of the
+// upper half, layer2 the one of the lower half.
+vec3 layer1_color1;
+vec3 layer1_color2;
+vec3 layer2_color1;
+vec3 layer2_color2;
+
+void initTheme()
+{
+    int t = clamp(uTheme, 1, 5);
+    if (t == 1) {          // dawn — the original peach/blue look
+        layer1_color1 = vec3(.957, .804, .623);
+        layer1_color2 = vec3(.192, .384, .933);
+        layer2_color1 = vec3(.910, .510, .800);
+        layer2_color2 = vec3(.350, .710, .953);
+    } else if (t == 2) {   // sunset — amber into magenta and violet
+        layer1_color1 = vec3(.996, .741, .376);
+        layer1_color2 = vec3(.612, .114, .427);
+        layer2_color1 = vec3(.973, .463, .365);
+        layer2_color2 = vec3(.404, .204, .678);
+    } else if (t == 3) {   // mint — pale mint into deep teal
+        layer1_color1 = vec3(.792, .965, .851);
+        layer1_color2 = vec3(.043, .353, .404);
+        layer2_color1 = vec3(.294, .831, .808);
+        layer2_color2 = vec3(.114, .596, .412);
+    } else if (t == 4) {   // ember — dark plum with orange embers
+        layer1_color1 = vec3(.976, .478, .169);
+        layer1_color2 = vec3(.157, .063, .157);
+        layer2_color1 = vec3(.694, .110, .212);
+        layer2_color2 = vec3(.949, .769, .290);
+    } else {               // arctic — ice and lavender over indigo
+        layer1_color1 = vec3(.878, .937, .976);
+        layer1_color2 = vec3(.235, .294, .573);
+        layer2_color1 = vec3(.729, .706, .933);
+        layer2_color2 = vec3(.502, .804, .914);
+    }
+}
+
 mat2 Rot(float a)
 {
     float s = sin(a);
@@ -38,6 +79,8 @@ float noise( in vec2 p )
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
+    initTheme();
+
     vec2 uv = fragCoord/iResolution.xy;
     float ratio = iResolution.x / iResolution.y;
 
@@ -64,13 +107,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     
     // draw the image
-    vec3 colorYellow = vec3(.957, .804, .623);
-    vec3 colorDeepBlue = vec3(.192, .384, .933);
-    vec3 layer1 = mix(colorYellow, colorDeepBlue, S(-.3, .2, (tuv*Rot(radians(-5.))).x));
-    
-    vec3 colorRed = vec3(.910, .510, .8);
-    vec3 colorBlue = vec3(0.350, .71, .953);
-    vec3 layer2 = mix(colorRed, colorBlue, S(-.3, .2, (tuv*Rot(radians(-5.))).x));
+    vec3 layer1 = mix(layer1_color1, layer1_color2, S(-.3, .2, (tuv*Rot(radians(-5.))).x));
+
+    vec3 layer2 = mix(layer2_color1, layer2_color2, S(-.3, .2, (tuv*Rot(radians(-5.))).x));
     
     vec3 finalComp = mix(layer1, layer2, S(.5, -.3, tuv.y));
     
