@@ -6,7 +6,7 @@ import numpy as np
 import render_wallpaper as rw
 
 SHADERS = os.path.join(os.path.dirname(os.path.dirname(__file__)), "shaders")
-XMB = os.path.join(SHADERS, "ps", "xmb_psp_new.frag")
+PSP = os.path.join(SHADERS, "psp-original.frag")
 
 
 def _render_frame(shader_path, uniforms, w=32, h=48):
@@ -34,8 +34,8 @@ def _render_frame(shader_path, uniforms, w=32, h=48):
         ctx.release()
 
 
-def test_xmb_compiles_and_utheme_changes_output():
-    # theme 1 has a blue background, theme 7 a black one -> pixels must differ
-    blue = _render_frame(XMB, {"uTheme": 1})
-    dark = _render_frame(XMB, {"uTheme": 7})
-    assert blue != dark
+def test_psp_compiles_and_utheme_changes_output():
+    # theme 1 is pink, theme 8 midnight blue -> pixels must differ
+    pink = _render_frame(PSP, {"uTheme": 1})
+    midnight = _render_frame(PSP, {"uTheme": 8})
+    assert pink != midnight
