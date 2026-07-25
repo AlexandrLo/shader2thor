@@ -1,3 +1,32 @@
+uniform int uTheme;
+
+// ---- theme-dependent parameters (filled at runtime by initTheme) ----------
+// `tint` is the ambient color the ether fades to, `bands` scales the field into
+// each channel and so decides the hue of the bright filaments.
+vec3 tint;
+vec3 bands;
+
+void initTheme()
+{
+    int t = clamp(uTheme, 1, 5);
+    if (t == 1) {          // abyss — the original blue/teal look
+        tint  = vec3(.1, .3, .4);
+        bands = vec3(10., 5., 6.);
+    } else if (t == 2) {   // ember — warm orange filaments over a rust haze
+        tint  = vec3(.4, .22, .1);
+        bands = vec3(6., 8., 11.);
+    } else if (t == 3) {   // verdant — green ether with a cold undertone
+        tint  = vec3(.12, .38, .22);
+        bands = vec3(9., 5., 10.);
+    } else if (t == 4) {   // orchid — violet and magenta
+        tint  = vec3(.32, .12, .42);
+        bands = vec3(7., 11., 6.);
+    } else {               // solar — gold shading into deep amber
+        tint  = vec3(.42, .32, .08);
+        bands = vec3(6., 7., 12.);
+    }
+}
+
 // Warps `s` with two frequency-mismatched pseudo-rotations and returns a
 // scalar field used both as the raymarch step and as a color term.
 float field(inout vec3 s, float t, float r) {
@@ -18,6 +47,8 @@ float ditherNoise( in vec2 fragCoord )
 }
 
 void mainImage(out vec4 o, vec2 u) {
+    initTheme();
+
     vec3 p, s, O, R = iResolution;
     float t = iTime, d = 2.5, r;
 
@@ -28,7 +59,7 @@ void mainImage(out vec4 o, vec2 u) {
         s = p + .1;
 
         O = max(O + .7 - r * .28, O)
-          * (vec3(.1, .3, .4) - vec3(10, 5, 6) * field(s, t, r) / 4.);
+          * (tint - bands * field(s, t, r) / 4.);
         o.xyz = O;
     }
 

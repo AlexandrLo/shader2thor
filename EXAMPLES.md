@@ -232,11 +232,41 @@ preview opens the directory with all files for that variant.
 
 [top mp4](output/circle-pattern/circle_pattern_top.mp4) · [bottom mp4](output/circle-pattern/circle_pattern_bottom.mp4)
 
+## ether/abyss
+
+[![ether/abyss](output/ether/abyss/abyss_preview.png)](output/ether/abyss/)
+
+[top mp4](output/ether/abyss/abyss_top.mp4) · [bottom mp4](output/ether/abyss/abyss_bottom.mp4)
+
+## ether/ember
+
+[![ether/ember](output/ether/ember/ember_preview.png)](output/ether/ember/)
+
+[top mp4](output/ether/ember/ember_top.mp4) · [bottom mp4](output/ether/ember/ember_bottom.mp4)
+
 ## ether
 
 [![ether](output/ether/ether_preview.png)](output/ether/)
 
 [top mp4](output/ether/ether_top.mp4) · [bottom mp4](output/ether/ether_bottom.mp4)
+
+## ether/orchid
+
+[![ether/orchid](output/ether/orchid/orchid_preview.png)](output/ether/orchid/)
+
+[top mp4](output/ether/orchid/orchid_top.mp4) · [bottom mp4](output/ether/orchid/orchid_bottom.mp4)
+
+## ether/solar
+
+[![ether/solar](output/ether/solar/solar_preview.png)](output/ether/solar/)
+
+[top mp4](output/ether/solar/solar_top.mp4) · [bottom mp4](output/ether/solar/solar_bottom.mp4)
+
+## ether/verdant
+
+[![ether/verdant](output/ether/verdant/verdant_preview.png)](output/ether/verdant/)
+
+[top mp4](output/ether/verdant/verdant_top.mp4) · [bottom mp4](output/ether/verdant/verdant_bottom.mp4)
 
 ## fall-guys
 

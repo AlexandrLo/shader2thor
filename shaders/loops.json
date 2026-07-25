@@ -197,7 +197,26 @@
   "blackwater": 25.132741228718345,
   "aurora": 40.0,
   "circle-pattern": 18.75,
-  "ether": 31.4,
+  "ether": {
+    "duration": 31.4,
+    "variations": {
+      "abyss": {
+        "uTheme": 1
+      },
+      "ember": {
+        "uTheme": 2
+      },
+      "verdant": {
+        "uTheme": 3
+      },
+      "orchid": {
+        "uTheme": 4
+      },
+      "solar": {
+        "uTheme": 5
+      }
+    }
+  },
   "fall-guys": 15.707963267948966,
   "gradient": {
     "duration": 18.84955592153876,
