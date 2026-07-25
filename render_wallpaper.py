@@ -16,6 +16,8 @@ import moderngl
 import numpy as np
 from PIL import Image
 
+from build_docs import EXAMPLES_PATH, MOSAIC_NAME, build_docs
+
 DEFAULT_DURATION = 20.0
 DEFAULT_FPS = 30
 DEFAULT_CRF = 5
@@ -403,6 +405,21 @@ def main():
         default=DEFAULT_GAP,
         help=f"vertical gap between screens in px (default: {DEFAULT_GAP})",
     )
+    p.add_argument(
+        "--no-mosaic",
+        action="store_true",
+        help=f"skip rebuilding <output_dir>/{MOSAIC_NAME} after rendering",
+    )
+    p.add_argument(
+        "--no-examples",
+        action="store_true",
+        help=f"skip rebuilding {os.path.basename(EXAMPLES_PATH)} after rendering",
+    )
+    p.add_argument(
+        "--examples",
+        default=EXAMPLES_PATH,
+        help=f"path to write the examples list to (default: {EXAMPLES_PATH})",
+    )
     args = p.parse_args()
 
     top_w, top_h = args.top
@@ -453,6 +470,16 @@ def main():
             failed.append(name)
 
     print(f"\n{len(succeeded)} succeeded, {len(failed)} failed")
+
+    # Built from every preview in the output root, not just this run's, so a
+    # single-shader run still refreshes the full mosaic and examples list.
+    build_docs(
+        args.output_dir,
+        examples_path=args.examples,
+        mosaic=not args.no_mosaic,
+        examples=not args.no_examples,
+    )
+
     if failed:
         print("Failed: " + ", ".join(failed), file=sys.stderr)
         sys.exit(1)

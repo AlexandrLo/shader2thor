@@ -2,6 +2,8 @@
 
 Converts shaders into a two-screen wallpaper videos for Ayn Thor.
 
+[![All shader previews](output/all_previews_mosaic.jpg)](EXAMPLES.md)
+
 See [EXAMPLES.md](EXAMPLES.md) for previews and downloads of every shader currently in `output/`.
 
 ## Requirements
@@ -38,6 +40,9 @@ The input type (a `.frag` file or a directory) is auto-detected. Flags:
 | `--top` | `1920x1080` | Top screen size as `WxH` |
 | `--bottom` | `1240x1080` | Bottom screen size as `WxH` |
 | `--gap` | `82` | Vertical gap between screens, in px |
+| `--no-mosaic` | off | Skip rebuilding the combined preview mosaic |
+| `--no-examples` | off | Skip rebuilding `EXAMPLES.md` |
+| `--examples` | `EXAMPLES.md` next to the script | Where to write the examples list |
 
 Canvas resolution isn't a flag itself — it's derived from `--top`/`--bottom`/`--gap` (see [Device geometry](#device-geometry)).
 
@@ -103,6 +108,25 @@ output/
 Same layout for single-file and batch mode. The preview PNG isn't a throwaway — it's part of the output.
 
 Re-running a batch always re-renders everything — there's no caching or skipping of already-rendered shaders.
+
+## Generated docs
+
+When a run finishes, two files are regenerated from the previews found under the output root:
+
+- `output/all_previews_mosaic.jpg` — every `*_preview.png` tiled into one contact sheet (the image at the top of this README)
+- `EXAMPLES.md` — one section per variant, with its preview and links to both videos
+
+Both are built from the whole output tree rather than just the current run, so rendering a single shader still refreshes them completely. Skip either with `--no-mosaic` / `--no-examples`.
+
+To rebuild them from an existing output tree without rendering anything:
+
+```bash
+python build_docs.py output
+```
+
+It takes the same `--no-mosaic`, `--no-examples` and `--examples` flags.
+
+Note that both are derived from whatever is in the output root you point at — rendering into a scratch directory with the defaults would rewrite the repo's `EXAMPLES.md` from just that directory's contents. Pass `--no-examples` or `--examples` when rendering somewhere other than the real output root.
 
 ## Device geometry
 

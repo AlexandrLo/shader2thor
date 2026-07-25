@@ -226,11 +226,11 @@ preview opens the directory with all files for that variant.
 
 [top mp4](output/blackwater/blackwater_top.mp4) · [bottom mp4](output/blackwater/blackwater_bottom.mp4)
 
-## circle_pattern
+## circle-pattern
 
-[![circle_pattern](output/circle_pattern/circle_pattern_preview.png)](output/circle_pattern/)
+[![circle-pattern](output/circle-pattern/circle_pattern_preview.png)](output/circle-pattern/)
 
-[top mp4](output/circle_pattern/circle_pattern_top.mp4) · [bottom mp4](output/circle_pattern/circle_pattern_bottom.mp4)
+[top mp4](output/circle-pattern/circle_pattern_top.mp4) · [bottom mp4](output/circle-pattern/circle_pattern_bottom.mp4)
 
 ## ether
 
@@ -238,11 +238,11 @@ preview opens the directory with all files for that variant.
 
 [top mp4](output/ether/ether_top.mp4) · [bottom mp4](output/ether/ether_bottom.mp4)
 
-## fall_guys
+## fall-guys
 
-[![fall_guys](output/fall_guys/fall_guys_preview.png)](output/fall_guys/)
+[![fall-guys](output/fall-guys/fall_guys_preview.png)](output/fall-guys/)
 
-[top mp4](output/fall_guys/fall_guys_top.mp4) · [bottom mp4](output/fall_guys/fall_guys_bottom.mp4)
+[top mp4](output/fall-guys/fall_guys_top.mp4) · [bottom mp4](output/fall-guys/fall_guys_bottom.mp4)
 
 ## gradient
 
@@ -262,56 +262,212 @@ preview opens the directory with all files for that variant.
 
 [top mp4](output/pew/pew_top.mp4) · [bottom mp4](output/pew/pew_bottom.mp4)
 
+## psp-original/amber
+
+[![psp-original/amber](output/psp-original/amber/amber_preview.png)](output/psp-original/amber/)
+
+[top mp4](output/psp-original/amber/amber_top.mp4) · [bottom mp4](output/psp-original/amber/amber_bottom.mp4)
+
+## psp-original/ash
+
+[![psp-original/ash](output/psp-original/ash/ash_preview.png)](output/psp-original/ash/)
+
+[top mp4](output/psp-original/ash/ash_top.mp4) · [bottom mp4](output/psp-original/ash/ash_bottom.mp4)
+
+## psp-original/azure
+
+[![psp-original/azure](output/psp-original/azure/azure_preview.png)](output/psp-original/azure/)
+
+[top mp4](output/psp-original/azure/azure_top.mp4) · [bottom mp4](output/psp-original/azure/azure_bottom.mp4)
+
+## psp-original/brown
+
+[![psp-original/brown](output/psp-original/brown/brown_preview.png)](output/psp-original/brown/)
+
+[top mp4](output/psp-original/brown/brown_top.mp4) · [bottom mp4](output/psp-original/brown/brown_bottom.mp4)
+
+## psp-original/charcoal
+
+[![psp-original/charcoal](output/psp-original/charcoal/charcoal_preview.png)](output/psp-original/charcoal/)
+
+[top mp4](output/psp-original/charcoal/charcoal_top.mp4) · [bottom mp4](output/psp-original/charcoal/charcoal_bottom.mp4)
+
+## psp-original/coral
+
+[![psp-original/coral](output/psp-original/coral/coral_preview.png)](output/psp-original/coral/)
+
+[top mp4](output/psp-original/coral/coral_top.mp4) · [bottom mp4](output/psp-original/coral/coral_bottom.mp4)
+
+## psp-original/crimson
+
+[![psp-original/crimson](output/psp-original/crimson/crimson_preview.png)](output/psp-original/crimson/)
+
+[top mp4](output/psp-original/crimson/crimson_top.mp4) · [bottom mp4](output/psp-original/crimson/crimson_bottom.mp4)
+
+## psp-original/eggplant
+
+[![psp-original/eggplant](output/psp-original/eggplant/eggplant_preview.png)](output/psp-original/eggplant/)
+
+[top mp4](output/psp-original/eggplant/eggplant_top.mp4) · [bottom mp4](output/psp-original/eggplant/eggplant_bottom.mp4)
+
+## psp-original/emerald
+
+[![psp-original/emerald](output/psp-original/emerald/emerald_preview.png)](output/psp-original/emerald/)
+
+[top mp4](output/psp-original/emerald/emerald_top.mp4) · [bottom mp4](output/psp-original/emerald/emerald_bottom.mp4)
+
+## psp-original/fuchsia
+
+[![psp-original/fuchsia](output/psp-original/fuchsia/fuchsia_preview.png)](output/psp-original/fuchsia/)
+
+[top mp4](output/psp-original/fuchsia/fuchsia_top.mp4) · [bottom mp4](output/psp-original/fuchsia/fuchsia_bottom.mp4)
+
+## psp-original/gold
+
+[![psp-original/gold](output/psp-original/gold/gold_preview.png)](output/psp-original/gold/)
+
+[top mp4](output/psp-original/gold/gold_top.mp4) · [bottom mp4](output/psp-original/gold/gold_bottom.mp4)
+
+## psp-original/grape
+
+[![psp-original/grape](output/psp-original/grape/grape_preview.png)](output/psp-original/grape/)
+
+[top mp4](output/psp-original/grape/grape_top.mp4) · [bottom mp4](output/psp-original/grape/grape_bottom.mp4)
+
+## psp-original/green
+
+[![psp-original/green](output/psp-original/green/green_preview.png)](output/psp-original/green/)
+
+[top mp4](output/psp-original/green/green_top.mp4) · [bottom mp4](output/psp-original/green/green_bottom.mp4)
+
+## psp-original/hotpink
+
+[![psp-original/hotpink](output/psp-original/hotpink/hotpink_preview.png)](output/psp-original/hotpink/)
+
+[top mp4](output/psp-original/hotpink/hotpink_top.mp4) · [bottom mp4](output/psp-original/hotpink/hotpink_bottom.mp4)
+
+## psp-original/indigo
+
+[![psp-original/indigo](output/psp-original/indigo/indigo_preview.png)](output/psp-original/indigo/)
+
+[top mp4](output/psp-original/indigo/indigo_top.mp4) · [bottom mp4](output/psp-original/indigo/indigo_bottom.mp4)
+
+## psp-original/jade
+
+[![psp-original/jade](output/psp-original/jade/jade_preview.png)](output/psp-original/jade/)
+
+[top mp4](output/psp-original/jade/jade_top.mp4) · [bottom mp4](output/psp-original/jade/jade_bottom.mp4)
+
+## psp-original/lavender
+
+[![psp-original/lavender](output/psp-original/lavender/lavender_preview.png)](output/psp-original/lavender/)
+
+[top mp4](output/psp-original/lavender/lavender_top.mp4) · [bottom mp4](output/psp-original/lavender/lavender_bottom.mp4)
+
+## psp-original/lime
+
+[![psp-original/lime](output/psp-original/lime/lime_preview.png)](output/psp-original/lime/)
+
+[top mp4](output/psp-original/lime/lime_top.mp4) · [bottom mp4](output/psp-original/lime/lime_bottom.mp4)
+
+## psp-original/magenta
+
+[![psp-original/magenta](output/psp-original/magenta/magenta_preview.png)](output/psp-original/magenta/)
+
+[top mp4](output/psp-original/magenta/magenta_top.mp4) · [bottom mp4](output/psp-original/magenta/magenta_bottom.mp4)
+
+## psp-original/mauve
+
+[![psp-original/mauve](output/psp-original/mauve/mauve_preview.png)](output/psp-original/mauve/)
+
+[top mp4](output/psp-original/mauve/mauve_top.mp4) · [bottom mp4](output/psp-original/mauve/mauve_bottom.mp4)
+
+## psp-original/midnight
+
+[![psp-original/midnight](output/psp-original/midnight/midnight_preview.png)](output/psp-original/midnight/)
+
+[top mp4](output/psp-original/midnight/midnight_top.mp4) · [bottom mp4](output/psp-original/midnight/midnight_bottom.mp4)
+
+## psp-original/periwinkle
+
+[![psp-original/periwinkle](output/psp-original/periwinkle/periwinkle_preview.png)](output/psp-original/periwinkle/)
+
+[top mp4](output/psp-original/periwinkle/periwinkle_top.mp4) · [bottom mp4](output/psp-original/periwinkle/periwinkle_bottom.mp4)
+
+## psp-original/pink
+
+[![psp-original/pink](output/psp-original/pink/pink_preview.png)](output/psp-original/pink/)
+
+[top mp4](output/psp-original/pink/pink_top.mp4) · [bottom mp4](output/psp-original/pink/pink_bottom.mp4)
+
+## psp-original/plum
+
+[![psp-original/plum](output/psp-original/plum/plum_preview.png)](output/psp-original/plum/)
+
+[top mp4](output/psp-original/plum/plum_top.mp4) · [bottom mp4](output/psp-original/plum/plum_bottom.mp4)
+
+## psp-original/purple
+
+[![psp-original/purple](output/psp-original/purple/purple_preview.png)](output/psp-original/purple/)
+
+[top mp4](output/psp-original/purple/purple_top.mp4) · [bottom mp4](output/psp-original/purple/purple_bottom.mp4)
+
+## psp-original/red
+
+[![psp-original/red](output/psp-original/red/red_preview.png)](output/psp-original/red/)
+
+[top mp4](output/psp-original/red/red_top.mp4) · [bottom mp4](output/psp-original/red/red_bottom.mp4)
+
+## psp-original/salmon
+
+[![psp-original/salmon](output/psp-original/salmon/salmon_preview.png)](output/psp-original/salmon/)
+
+[top mp4](output/psp-original/salmon/salmon_top.mp4) · [bottom mp4](output/psp-original/salmon/salmon_bottom.mp4)
+
+## psp-original/sand
+
+[![psp-original/sand](output/psp-original/sand/sand_preview.png)](output/psp-original/sand/)
+
+[top mp4](output/psp-original/sand/sand_top.mp4) · [bottom mp4](output/psp-original/sand/sand_bottom.mp4)
+
+## psp-original/shamrock
+
+[![psp-original/shamrock](output/psp-original/shamrock/shamrock_preview.png)](output/psp-original/shamrock/)
+
+[top mp4](output/psp-original/shamrock/shamrock_top.mp4) · [bottom mp4](output/psp-original/shamrock/shamrock_bottom.mp4)
+
+## psp-original/silver
+
+[![psp-original/silver](output/psp-original/silver/silver_preview.png)](output/psp-original/silver/)
+
+[top mp4](output/psp-original/silver/silver_top.mp4) · [bottom mp4](output/psp-original/silver/silver_bottom.mp4)
+
+## psp-original/slate
+
+[![psp-original/slate](output/psp-original/slate/slate_preview.png)](output/psp-original/slate/)
+
+[top mp4](output/psp-original/slate/slate_top.mp4) · [bottom mp4](output/psp-original/slate/slate_bottom.mp4)
+
+## psp-original/teal
+
+[![psp-original/teal](output/psp-original/teal/teal_preview.png)](output/psp-original/teal/)
+
+[top mp4](output/psp-original/teal/teal_top.mp4) · [bottom mp4](output/psp-original/teal/teal_bottom.mp4)
+
+## psp-original/violet
+
+[![psp-original/violet](output/psp-original/violet/violet_preview.png)](output/psp-original/violet/)
+
+[top mp4](output/psp-original/violet/violet_top.mp4) · [bottom mp4](output/psp-original/violet/violet_bottom.mp4)
+
+## psp-original/yellow
+
+[![psp-original/yellow](output/psp-original/yellow/yellow_preview.png)](output/psp-original/yellow/)
+
+[top mp4](output/psp-original/yellow/yellow_top.mp4) · [bottom mp4](output/psp-original/yellow/yellow_bottom.mp4)
+
 ## squares2
 
 [![squares2](output/squares2/squares2_preview.png)](output/squares2/)
 
 [top mp4](output/squares2/squares2_top.mp4) · [bottom mp4](output/squares2/squares2_bottom.mp4)
-
-## xmb_psp_new/blue
-
-[![xmb_psp_new/blue](output/xmb_psp_new/blue/blue_preview.png)](output/xmb_psp_new/blue/)
-
-[top mp4](output/xmb_psp_new/blue/blue_top.mp4) · [bottom mp4](output/xmb_psp_new/blue/blue_bottom.mp4)
-
-## xmb_psp_new/dark
-
-[![xmb_psp_new/dark](output/xmb_psp_new/dark/dark_preview.png)](output/xmb_psp_new/dark/)
-
-[top mp4](output/xmb_psp_new/dark/dark_top.mp4) · [bottom mp4](output/xmb_psp_new/dark/dark_bottom.mp4)
-
-## xmb_psp_new/gold
-
-[![xmb_psp_new/gold](output/xmb_psp_new/gold/gold_preview.png)](output/xmb_psp_new/gold/)
-
-[top mp4](output/xmb_psp_new/gold/gold_top.mp4) · [bottom mp4](output/xmb_psp_new/gold/gold_bottom.mp4)
-
-## xmb_psp_new/magenta
-
-[![xmb_psp_new/magenta](output/xmb_psp_new/magenta/magenta_preview.png)](output/xmb_psp_new/magenta/)
-
-[top mp4](output/xmb_psp_new/magenta/magenta_top.mp4) · [bottom mp4](output/xmb_psp_new/magenta/magenta_bottom.mp4)
-
-## xmb_psp_new/pastel
-
-[![xmb_psp_new/pastel](output/xmb_psp_new/pastel/pastel_preview.png)](output/xmb_psp_new/pastel/)
-
-[top mp4](output/xmb_psp_new/pastel/pastel_top.mp4) · [bottom mp4](output/xmb_psp_new/pastel/pastel_bottom.mp4)
-
-## xmb_psp_new/red
-
-[![xmb_psp_new/red](output/xmb_psp_new/red/red_preview.png)](output/xmb_psp_new/red/)
-
-[top mp4](output/xmb_psp_new/red/red_top.mp4) · [bottom mp4](output/xmb_psp_new/red/red_bottom.mp4)
-
-## xmb_psp_new/rust
-
-[![xmb_psp_new/rust](output/xmb_psp_new/rust/rust_preview.png)](output/xmb_psp_new/rust/)
-
-[top mp4](output/xmb_psp_new/rust/rust_top.mp4) · [bottom mp4](output/xmb_psp_new/rust/rust_bottom.mp4)
-
-## xmb_psp_new/violet
-
-[![xmb_psp_new/violet](output/xmb_psp_new/violet/violet_preview.png)](output/xmb_psp_new/violet/)
-
-[top mp4](output/xmb_psp_new/violet/violet_top.mp4) · [bottom mp4](output/xmb_psp_new/violet/violet_bottom.mp4)
